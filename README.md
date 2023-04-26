@@ -71,6 +71,7 @@ cmake_minimum_required(VERSION 3.4)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+#  Создаем опцию BUILD_EXAMPLES, которая отвечает за сборку примеров
 option(BUILD_EXAMPLES "Build examples" OFF)
 
 project(print)
@@ -78,34 +79,47 @@ project(print)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 add_library(print STATIC ${CMAKE_CURRENT_SOURCE_DIR}/source/print.cpp)
 
+# Создаем исполняемый файл demo
 add_executable(demo ${CMAKE_CURRENT_SOURCE_DIR}/demo/main.cpp)
 target_link_libraries(demo print) 
+# Устанавливаем исполняемый файл demo в директорию bin
 install(TARGETS demo RUNTIME DESTINATION bin)
 
+# Добавляем директорию include из проекта print в список директорий для поиска заголовочных файлов при использовании библиотеки print
 target_include_directories(print PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>
 )
 
+# Если опция BUILD_EXAMPLES включена, то
 if(BUILD_EXAMPLES)
+  # Создается переменная EXAMPLE_SOURCES, которая содержит список всех файлов с расширением .cpp в директории examples
   file(GLOB EXAMPLE_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/examples/*.cpp")
+  # Запускается цикл по всем файлам из списка EXAMPLE_SOURCES
   foreach(EXAMPLE_SOURCE ${EXAMPLE_SOURCES})
+    # Для каждого файла создается переменная EXAMPLE_NAME, которая содержит название файла без расширения
     get_filename_component(EXAMPLE_NAME ${EXAMPLE_SOURCE} NAME_WE)
+    # Создается исполняемый файл с названием EXAMPLE_NAME и исходным файлом EXAMPLE_SOURCE
     add_executable(${EXAMPLE_NAME} ${EXAMPLE_SOURCE})
+    # Исполняемый файл связывается с библиотекой print
     target_link_libraries(${EXAMPLE_NAME} print)
+    # Исполняемый файл устанавливается в директорию bin
     install(TARGETS ${EXAMPLE_NAME}
       RUNTIME DESTINATION bin
     )
   endforeach(EXAMPLE_SOURCE ${EXAMPLE_SOURCES})
 endif()
 
+# Устанавливаем библиотеку print в директорию lib и экспортируем ее в файл print-config
 install(TARGETS print
     EXPORT print-config
     ARCHIVE DESTINATION lib
     LIBRARY DESTINATION lib
 )
 
+# Устанавливаем все заголовочные файлы из директории include в директорию include
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/ DESTINATION include)
+# Экспортируем файл print-config в директорию cmake
 install(EXPORT print-config DESTINATION cmake)
 ```
 
@@ -154,6 +168,10 @@ jobs:
 
 ###
 
+Устанавливаем пакет Docker в системе с помощью менеджера пакетов apt. 
+Команда "sudo" используется для получения прав администратора, так как установка пакетов требует прав root.
+Затем запускает контейнер Docker с образом "hello-world". Этот образ используется для проверки, что Docker установлен и работает корректно.
+
 ```
 $ sudo apt install docker.io
 $ sudo docker run hello-world
@@ -163,24 +181,33 @@ $ sudo docker run hello-world
 
 ![image](https://user-images.githubusercontent.com/125077130/234305009-847feae1-b269-405e-a1ec-7045ec48046d.png)
 
+
+Создаём Docker-образ с именем "logger" на основе Dockerfile, который находится в текущей директории. 
+Смотрим список всех доступных Docker-образов.
+Запускаем контейнер на основе образа "logger"
 ```
 $ sudo docker build -t logger .
 $ sudo docker images
 $ sudo docker run -it -v "$(pwd)/logs/:/home/masha/lab-07/logs/" logger
 ```
 
-1. говорит Docker'у создать новый образ с названием "logger" на основе Dockerfile из текущей директории (обозначенной точкой)
-
-2. выводит список всех доступных образов Docker, включая только что созданный "logger"
-
-3. выполняет запуск контейнера из образа logger и примонтирует к нему локальную директорию logs, используя опцию -v. -it - опция позволяет взаимодействовать с контейнером через его консоль
-
 Записываем: ```kakoito text```
+
+> Ключ "-t" указывает имя образа, а точка в конце команды указывает на текущую директорию как место, где находится Dockerfile.
+
+>Ключ "-it" позволяет запустить контейнер в интерактивном режиме и подключиться к нему терминалом. 
+
+> Ключ "-v" используется для монтирования локальной директории "logs" внутрь контейнера в директорию "/home/masha/lab-07/logs/".
+
 
 ```
 $ sudo docker inspect logger
 $ cat logs/log.txt
 ```
+
+1. используется для получения подробной информации о контейнере на основе образа "logger". Команда "inspect" позволяет получить различную информацию о контейнере, такую как его ID, имя, статус, настройки сети и т.д. "logger" указывает на имя контейнера, который будет проинспектирован.
+
+2. Смотрим содержимое файла "log.txt"
 
 Выводит:
 
